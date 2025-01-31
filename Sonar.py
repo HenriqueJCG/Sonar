@@ -130,7 +130,7 @@ def draw_figure(canvas, figure):
     figure_canvas_agg.get_tk_widget().pack(side="top", fill="both", expand=1)
     return figure_canvas_agg
 
-layout = [ #Define o layput
+layout = [ #Define o layout
     [sg.Canvas(size=(500, 500),key="-CANVAS-")]
 ]
 
