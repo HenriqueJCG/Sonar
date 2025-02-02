@@ -2,9 +2,7 @@
 import serial
 import psycopg2
 import numpy as np
-import PySimpleGUI as sg
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
 
@@ -73,10 +71,10 @@ line, = seismo_ax.plot([], [], color="red", linewidth=2)
 #======================================================================
 
 
-if Connected:
+#======================================================================
+# Update graphs
 
-    #======================================================================
-    # Update graphs
+if Connected:
     def update(frame):
         global angles, distances, seismo_distances
 
@@ -120,66 +118,8 @@ if Connected:
 
         return sweep_line, scatter, line
 
-    try:
+
         # Update plots with Animation
-        ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
-    except:
-        ani = 1
+    ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
 
-#======================================================================
-#PySimpleGUI
-
-def draw_figure(canvas, figure):
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side="left", fill="both", expand=True)
-    return figure_canvas_agg
-
-layout1 = [ #Define o layout
-    [sg.Canvas(key="-CANVAS-", expand_x=True, expand_y=True)]
-]
-
-layout0 = [
-    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,background_color='#a5a5a5')]
-]
-
-layout2 = [
-    [sg.Text(' Connection: ',background_color='#404040'),sg.Text(Connected,background_color='#404040') ,sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=False,enable_events=True,key='combo',background_color='#a5a5a5'),sg.Button('Reset',button_color='#a5a5a5')],
-    [sg.Frame("Manual Mode",layout0,title_location=sg.TITLE_LOCATION_TOP,background_color='#404040', expand_x=True, expand_y=True)]
-]
-
-layout = [
-    [sg.Column([
-        [sg.Frame("Plots", layout1, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
-    ], expand_x=True, expand_y=True,background_color='#a5a5a5'),
-    
-    sg.Column([
-        [sg.Frame("Control", layout2, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
-    ], expand_x=True, expand_y=True,background_color='#a5a5a5')]
-]
-
-window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True, background_color='#a5a5a5')
-window.bind("<Control-w>", "Ctrl+W")
-window.maximize()
-
-figure_canvas_agg=draw_figure(window['-CANVAS-'].TKCanvas, fig)
-
-while True:
-    # Serial setup
-    try:
-        ser = serial.Serial(COM, 9600, timeout=0.1)
-        Connected = True
-    except:
-        print("Error! Not connected! Try again.")
-        Connected = False
-
-    event, values = window.read()
-    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
-        break
-
-    if event == "Reset":
-        continue
-
-    figure_canvas_agg.draw()
-
-window.close()
+plt.show()

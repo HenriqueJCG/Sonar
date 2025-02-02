@@ -74,6 +74,11 @@ void setup() {
 //===============================================================================================================
 // Loop
 void loop() {
+  /*if (Serial.available() > 0) {
+        command = Serial.readStringUntil('\n');
+        if (command == "DEFAULT") current_mode=DEFAULT_MODE;
+        if (command == "BUTTON") current_mode=BUTTON_MODE;  // Stop sending data
+    }*/
   if (current_mode == DEFAULT_MODE) {  // Default mode is idle, turned off
     //Leds off
     digitalWrite(2, LOW);
