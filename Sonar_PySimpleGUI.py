@@ -38,6 +38,7 @@ recorded_times = []  # To record all times
 seismo_times = []  # For last 50 times
 seismo_distances = [0] * max_points  # Initialize with zeros
 start_time = datetime.now().timestamp()  # Record start time
+ang = [[' ' for x in range(4)] for y in range(5)] 
 #======================================================================
 
 fig=plt.figure() #Initialize figure
@@ -73,8 +74,6 @@ line, = seismo_ax.plot([], [], color="red", linewidth=2)
 #======================================================================
 
 
-
-
 #======================================================================
 # Update graphs
 def update(frame):
@@ -107,6 +106,16 @@ def update(frame):
                 angles.pop(0)
                 distances.pop(0)
 
+            siz=len(angles)
+            if siz>5:
+                siz=5
+            for j in range():
+                if angles[-1]<max_distance:
+                    ang[j][0]='Angle: '
+                    ang[j][1]=angles[(-1-j)]
+                    ang[j][2]=' Distance: '
+                    ang[j][3]=distances[(-1-j)]
+
         except (ValueError, IndexError):
             pass  # Ignore invalid data
 
@@ -128,6 +137,7 @@ except:
 
 #======================================================================
 #PySimpleGUI
+sg.change_look_and_feel('DarkAmber')
 
 def draw_figure(canvas, figure):
     figure.set_size_inches(5, 4, forward=True)  # Force size
@@ -136,26 +146,36 @@ def draw_figure(canvas, figure):
     figure_canvas_agg.get_tk_widget().pack(side="left", fill="both", expand=True)
     return figure_canvas_agg
 
-layout1 = [ #Define o layout
+layout0 = [ #Plots
     [sg.Canvas(key="-CANVAS-", expand_x=True, expand_y=True)]
 ]
 
-layout0 = [
-    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,background_color='#a5a5a5',key='slider')]
+layout1 = [ #Slider
+    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,background_color='#a5a5a5',key='slider',text_color='#000000')],
+    [sg.Text(' Delay: ',background_color='#404040'),sg.Combo(["10","20","30","40","50"],default_value="30",readonly=True,enable_events=True,key='combo_time',background_color='#a5a5a5'),sg.Text(' Distance: ',background_color='#404040'),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo',background_color='#a5a5a5')]
 ]
 
+
 layout2 = [
-    [sg.Text(' Connection: ',background_color='#404040'),sg.Text(Connected,background_color='#404040',key='status') ,sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo',background_color='#a5a5a5'),sg.Button('Reset',button_color='#a5a5a5'),sg.Radio('Off', group_id=1, default=True,background_color='#a5a5a5'), sg.Radio('On', group_id=1,background_color='#a5a5a5')],
-    [sg.Frame("Manual Mode",layout0,title_location=sg.TITLE_LOCATION_TOP,background_color='#404040', expand_x=True, expand_y=True)]
+    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')],
+    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')],
+    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')],
+    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')]
+]
+
+layout3 = [
+    [sg.Text(' Connection: ',background_color='#404040'),sg.Text(Connected,background_color='#404040',key='status') ,sg.Text(' Port: ',background_color='#404040'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo',background_color='#a5a5a5'),sg.Button('Reset',button_color=('#000000','#a5a5a5')),sg.Radio('Off', group_id=1, default=True,background_color='#a5a5a5',key='Off',text_color='#000000'), sg.Radio('On', group_id=1,background_color='#a5a5a5',key='On',text_color='#000000')],
+    [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP,background_color='#404040', expand_x=True, expand_y=True)],
+    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP,background_color='#404040', expand_x=True, expand_y=True)]
 ]
 
 layout = [
     [sg.Column([
-        [sg.Frame("Plots", layout1, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
+        [sg.Frame("Plots", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
     ], expand_x=True, expand_y=True,background_color='#a5a5a5'),
     
     sg.Column([
-        [sg.Frame("Control", layout2, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
+        [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
     ], expand_x=True, expand_y=True,background_color='#a5a5a5')]
 ]
 
@@ -166,7 +186,20 @@ window.maximize()
 figure_canvas_agg=draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
 while True:
-    # Serial setup
+
+    window['status'].update(Connected)
+    event, values = window.read(timeout=0.1)
+    
+    COM=values['combo']
+    angulo=values['slider']
+    print(values)
+
+    if values['On']:
+        status=True
+
+    if values['Off']:
+        status=False
+
     if not Connected:
         try:
             ser = serial.Serial(COM, 9600, timeout=0.1)
@@ -176,17 +209,14 @@ while True:
             Connected = False
     if Connected:
         try:
-            ser.read()
+            if status:
+                ser.write("DEFAULT")
+            else:
+                ser.write("BUTTON")
+
             Connected = True
         except:
             Connected = False
-
-    window['status'].update(Connected)
-    event, values = window.read(timeout=0.1)
-    
-    COM=values['combo']
-    angulo=values['slider']
-    print(values)
     
     if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
         break
