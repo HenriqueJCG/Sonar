@@ -109,7 +109,7 @@ def update(frame):
             siz=len(angles)
             if siz>5:
                 siz=5
-            for j in range():
+            for j in range(5):
                 if angles[-1]<max_distance:
                     ang[j][0]='Angle: '
                     ang[j][1]=angles[(-1-j)]
@@ -137,7 +137,7 @@ except:
 
 #======================================================================
 #PySimpleGUI
-sg.change_look_and_feel('DarkAmber')
+sg.change_look_and_feel('SystemDefault')
 
 def draw_figure(canvas, figure):
     figure.set_size_inches(5, 4, forward=True)  # Force size
@@ -151,39 +151,41 @@ layout0 = [ #Plots
 ]
 
 layout1 = [ #Slider
-    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,background_color='#a5a5a5',key='slider',text_color='#000000')],
-    [sg.Text(' Delay: ',background_color='#404040'),sg.Combo(["10","20","30","40","50"],default_value="30",readonly=True,enable_events=True,key='combo_time',background_color='#a5a5a5'),sg.Text(' Distance: ',background_color='#404040'),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo',background_color='#a5a5a5')]
+    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider')],
+    [sg.Text(' Delay: '),sg.Combo(["10","20","30","40","50"],default_value="30",readonly=True,enable_events=True,key='combo_time'),sg.Text(' Distance: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo')]
 ]
 
 
 layout2 = [
-    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')],
-    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')],
-    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')],
-    [sg.Text(ang[0][0],background_color='#404040'),sg.Text(ang[0][1],background_color='#404040'),sg.Text(ang[0][2],background_color='#404040'),sg.Text(ang[0][3],background_color='#404040')]
+    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])],
+    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])],
+    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])],
+    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])]
 ]
 
 layout3 = [
-    [sg.Text(' Connection: ',background_color='#404040'),sg.Text(Connected,background_color='#404040',key='status') ,sg.Text(' Port: ',background_color='#404040'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo',background_color='#a5a5a5'),sg.Button('Reset',button_color=('#000000','#a5a5a5')),sg.Radio('Off', group_id=1, default=True,background_color='#a5a5a5',key='Off',text_color='#000000'), sg.Radio('On', group_id=1,background_color='#a5a5a5',key='On',text_color='#000000')],
-    [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP,background_color='#404040', expand_x=True, expand_y=True)],
-    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP,background_color='#404040', expand_x=True, expand_y=True)]
+    [sg.Text('Connection:'),sg.Text(Connected,key='status') ,sg.Text(' Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo'),sg.Text(' Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('On', group_id=1,key='On'),sg.Text(' Sound:'),sg.Radio('Off', group_id=2,key='B_Off'), sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Button('Reset')],
+    [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)],
+    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)]
 ]
 
 layout = [
     [sg.Column([
-        [sg.Frame("Plots", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
-    ], expand_x=True, expand_y=True,background_color='#a5a5a5'),
+        [sg.Frame("Plots", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP)]
+    ], expand_x=True, expand_y=True),
     
     sg.Column([
-        [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP, background_color='#404040')]
-    ], expand_x=True, expand_y=True,background_color='#a5a5a5')]
+        [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP)]
+    ], expand_x=True, expand_y=True)]
 ]
 
-window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True, background_color='#a5a5a5')
+window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True)
 window.bind("<Control-w>", "Ctrl+W")
 window.maximize()
 
 figure_canvas_agg=draw_figure(window['-CANVAS-'].TKCanvas, fig)
+
+status=False
 
 while True:
 
@@ -192,27 +194,29 @@ while True:
     
     COM=values['combo']
     angulo=values['slider']
-    print(values)
 
-    if values['On']:
-        status=True
+    if values['B_On']:
+        buzzer=True
 
-    if values['Off']:
-        status=False
+    if values['B_Off']:
+        buzzer=False
 
     if not Connected:
         try:
             ser = serial.Serial(COM, 9600, timeout=0.1)
             Connected = True
         except:
-            print("Error! Not connected! Try again.")
             Connected = False
+            
     if Connected:
         try:
-            if status:
-                ser.write("DEFAULT")
-            else:
-                ser.write("BUTTON")
+            if status != values['Off'] and status==False:
+                ser.write("DEFAULT".encode())
+                status=values['On']
+
+            if status != values['On'] and status==False:
+                ser.write("BUTTON".encode())
+                status=values['Off']
 
             Connected = True
         except:

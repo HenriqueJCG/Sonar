@@ -32,6 +32,7 @@ const int DEFAULT_MODE = 0;
 const int BUTTON_MODE = 1;
 int current_mode = DEFAULT_MODE;
 int speakerPin = 5;
+String command;
 
 //===============================================================================================================
 // Check distance and serialprints
