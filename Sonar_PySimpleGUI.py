@@ -129,6 +129,7 @@ def update(frame):
 
     return sweep_line, scatter, line
 
+#!!!!!!!!!!!!!!!!!!!!
 try:
     # Update plots with Animation
     ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
@@ -137,7 +138,7 @@ except:
 
 #======================================================================
 #PySimpleGUI
-sg.change_look_and_feel('SystemDefault')
+sg.change_look_and_feel('SystemDefault')# Choose Theme
 
 def draw_figure(canvas, figure):
     figure.set_size_inches(5, 4, forward=True)  # Force size
@@ -146,6 +147,8 @@ def draw_figure(canvas, figure):
     figure_canvas_agg.get_tk_widget().pack(side="left", fill="both", expand=True)
     return figure_canvas_agg
 
+#===================================================================================
+#Layouts
 layout0 = [ #Plots
     [sg.Canvas(key="-CANVAS-", expand_x=True, expand_y=True)]
 ]
@@ -157,10 +160,11 @@ layout1 = [ #Slider
 
 
 layout2 = [
-    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])],
-    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])],
-    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])],
-    [sg.Text(ang[0][0]),sg.Text(ang[0][1]),sg.Text(ang[0][2]),sg.Text(ang[0][3])]
+    [sg.Text(ang[0][0],key='Log00'),sg.Text(ang[0][1],key='Log01'),sg.Text(ang[0][2],key='Log02'),sg.Text(ang[0][3],key='Log03')],
+    [sg.Text(ang[1][0],key='Log10'),sg.Text(ang[1][1],key='Log11'),sg.Text(ang[1][2],key='Log12'),sg.Text(ang[1][3],key='Log13')],
+    [sg.Text(ang[2][0],key='Log20'),sg.Text(ang[2][1],key='Log21'),sg.Text(ang[2][2],key='Log22'),sg.Text(ang[2][3],key='Log23')],
+    [sg.Text(ang[3][0],key='Log30'),sg.Text(ang[3][1],key='Log31'),sg.Text(ang[3][2],key='Log32'),sg.Text(ang[3][3],key='Log33')],
+    [sg.Text(ang[4][0],key='Log40'),sg.Text(ang[4][1],key='Log41'),sg.Text(ang[4][2],key='Log42'),sg.Text(ang[4][3],key='Log43')]
 ]
 
 layout3 = [
@@ -178,6 +182,7 @@ layout = [
         [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP)]
     ], expand_x=True, expand_y=True)]
 ]
+#===================================================================================
 
 window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True)
 window.bind("<Control-w>", "Ctrl+W")
@@ -185,13 +190,26 @@ window.maximize()
 
 figure_canvas_agg=draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
-status=False
+#===================================================================================
+#Values variables
 
+
+#===================================================================================
+
+#===================================================================================
+#GUI Loop
 while True:
 
+    #Update Text values
     window['status'].update(Connected)
+    window['Log00'].update(ang[0][0]); window['Log01'].update(ang[0][0]); window['Log02'].update(ang[0][0]); window['Log03'].update(ang[0][0])
+    window['Log10'].update(ang[0][0]); window['Log11'].update(ang[0][0]); window['Log12'].update(ang[0][0]); window['Log13'].update(ang[0][0])
+    window['Log20'].update(ang[0][0]); window['Log21'].update(ang[0][0]); window['Log22'].update(ang[0][0]); window['Log23'].update(ang[0][0])
+    window['Log30'].update(ang[0][0]); window['Log31'].update(ang[0][0]); window['Log32'].update(ang[0][0]); window['Log33'].update(ang[0][0])
+    window['Log40'].update(ang[0][0]); window['Log41'].update(ang[0][0]); window['Log42'].update(ang[0][0]); window['Log43'].update(ang[0][0])
+
+    #Read values from GUI
     event, values = window.read(timeout=0.1)
-    
     COM=values['combo']
     angulo=values['slider']
 
@@ -201,6 +219,8 @@ while True:
     if values['B_Off']:
         buzzer=False
 
+    #===================================================================================
+    #Update connection status
     if not Connected:
         try:
             ser = serial.Serial(COM, 9600, timeout=0.1)
@@ -210,17 +230,19 @@ while True:
             
     if Connected:
         try:
-            if status != values['Off'] and status==False:
+            if status != values['Off'] and status==False:#!!!!!!
                 ser.write("DEFAULT".encode())
                 status=values['On']
 
-            if status != values['On'] and status==False:
+            if status != values['On'] and status==False:#!!!!!!
                 ser.write("BUTTON".encode())
                 status=values['Off']
 
             Connected = True
         except:
             Connected = False
+
+    #===================================================================================
     
     if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
         break
@@ -231,3 +253,4 @@ while True:
     figure_canvas_agg.draw()
 
 window.close()
+#===================================================================================
