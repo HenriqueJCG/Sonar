@@ -33,6 +33,7 @@ const int BUTTON_MODE = 1;
 int current_mode = DEFAULT_MODE;
 int speakerPin = 5;
 String command;
+int dela=100;
 
 //===============================================================================================================
 // Check distance and serialprints
@@ -42,16 +43,16 @@ void verifica(int i) {
 
   if (distance < 50) {
     digitalWrite(3, HIGH);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 30; i++) {
       digitalWrite(speakerPin, HIGH);
       delayMicroseconds(500);
       digitalWrite(speakerPin, LOW);
       delayMicroseconds(500);
     }
-    delay(20);
+    delay(dela-30);
   } else {
     digitalWrite(3, LOW);
-    delay(30);
+    delay(dela);
   }
   Serial.print(i);
   Serial.print(",");
@@ -88,7 +89,7 @@ void loop() {
 
     // Servo in the middle
     myServo.write(90);
-    delay(30);
+    delay(dela);
 
     Serial.print(90);
     Serial.print(",");
