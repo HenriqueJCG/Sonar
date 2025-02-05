@@ -17,21 +17,12 @@ from datetime import datetime
 #cur.close()
 #conn.close()
 
-COM="COM3"
-
-# Serial setup
-try:
-    ser = serial.Serial(COM, 9600, timeout=0.1)
-    Connected = True
-except:
-    print("Error! Not connected! Try again.")
-    Connected = False
-
+Connected=False
 #======================================================================
 # Global variables to hold data
 max_distance = 50  # Maximum radar range in cm
 max_points = 100  # Number of points to display in seismograph
-Logsles = []
+angles = []
 distances = []
 Log_angle = []
 Log_distances = []
@@ -39,7 +30,6 @@ Log_times = []
 recorded_distances = []  # To record all distances
 seismo_times = []  # For last 50 times
 seismo_distances = [0] * max_points  # Initialize with zeros
-start_time = datetime.now().timestamp()  # Record start time
 Logs = [[' ' for x in range(6)] for y in range(10)] 
 #======================================================================
 
@@ -79,16 +69,16 @@ line, = seismo_ax.plot([], [], color="red", linewidth=2)
 #======================================================================
 # Update graphs
 def update(frame):
-    global Logsles, distances, seismo_distances
+    global angles, distances, seismo_distances
 
     # Read data from Arduino
     if ser.in_waiting > 0:
         data = ser.readline().decode().strip()
-        Logsle, distance = map(int, data.split(","))
-        Logsle_rad = np.deg2rad(Logsle)  # Convert Logsle to radians
+        angle, distance = map(int, data.split(","))
+        angle_rad = np.deg2rad(angle)  # Convert angle to radians
 
         # Add data to radar
-        Logsles.append(Logsle_rad)
+        angles.append(angle_rad)
         distances.append(distance)
 
         # Add data to seismograph
@@ -96,22 +86,22 @@ def update(frame):
         current_time = date_format = datetime.fromtimestamp(current_time).strftime('%H:%M:%S %d-%m-%Y')
         recorded_distances.append(distance)
 
-        #print("Tempo: ",current_time,"Logsulo: ",Logsle,"Distancia: ",distance)
+        #print("Tempo: ",current_time,"Logsulo: ",angle,"Distancia: ",distance)
         
         # Slice for the last `max_points`
         seismo_distances = recorded_distances[-max_points:]
 
         # Limit the number of radar points
-        if len(Logsles) > 30:
-            Logsles.pop(0)
+        if len(angles) > 30:
+            angles.pop(0)
             distances.pop(0)
 
         if distance < max_distance:
             Log_distances.append(distance)
-            Log_angle.append(Logsle)
+            Log_angle.append(angle)
             Log_times.append(current_time)
 
-        if len(Log_angle) > 5:
+        if len(Log_angle) > 10:
             Log_angle.pop(0)
             Log_distances.pop(0)
             Log_times.pop(0)
@@ -120,7 +110,7 @@ def update(frame):
         if siz>10:
             siz=10
         for j in range(siz):
-            Logs[j][0]='Logsle: '
+            Logs[j][0]='Angle: '
             Logs[j][1]=Log_angle[(-1-j)]
             Logs[j][2]='°,   Distance: '
             Logs[j][3]=Log_distances[(-1-j)]
@@ -128,9 +118,9 @@ def update(frame):
             Logs[j][5]=Log_times[(-1-j)]
 
     # Update radar
-    current_Logsle = Logsles[-1] if Logsles else 0
-    sweep_line.set_data([0, current_Logsle], [0, max_distance])
-    scatter.set_offsets(np.c_[Logsles, distances])
+    current_angle = angles[-1] if angles else 0
+    sweep_line.set_data([0, current_angle], [0, max_distance])
+    scatter.set_offsets(np.c_[angles, distances])
 
     # Update seismograph
     line.set_data(range(len(seismo_distances)), seismo_distances)
@@ -139,7 +129,7 @@ def update(frame):
 
 #======================================================================
 #PySimpleGUI
-sg.chLogse_look_and_feel('SystemDefault')# Choose Theme
+sg.change_look_and_feel('SystemDefault')# Choose Theme
 
 #===================================================================================
 #Layouts
@@ -149,7 +139,7 @@ layout0 = [ #Plots
 
 layout1 = [ #Slider
     [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider')],
-    [sg.Text(' Delay: '),sg.Combo(["70","85","100","115","130"],default_value="100",readonly=True,enable_events=True,key='combo_time'),sg.Text(' Distance: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo')]
+    [sg.Text(' Delay: '),sg.Combo(["70","85","100","115","130"],default_value="100",readonly=True,enable_events=True,key='combo_time'),sg.Text(' Distance: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo_distance')]
 ]
 
 
@@ -159,10 +149,15 @@ layout2 = [
     [sg.Text(f"{Logs[2][0]} {Logs[2][1]} {Logs[2][2]} {Logs[2][3]} {Logs[2][4]} {Logs[2][5]}", key='Log2')],
     [sg.Text(f"{Logs[3][0]} {Logs[3][1]} {Logs[3][2]} {Logs[3][3]} {Logs[3][4]} {Logs[3][5]}", key='Log3')],
     [sg.Text(f"{Logs[4][0]} {Logs[4][1]} {Logs[4][2]} {Logs[4][3]} {Logs[4][4]} {Logs[4][5]}", key='Log4')],
+    [sg.Text(f"{Logs[5][0]} {Logs[5][1]} {Logs[5][2]} {Logs[5][3]} {Logs[5][4]} {Logs[5][5]}", key='Log5')],
+    [sg.Text(f"{Logs[6][0]} {Logs[6][1]} {Logs[6][2]} {Logs[6][3]} {Logs[6][4]} {Logs[6][5]}", key='Log6')],
+    [sg.Text(f"{Logs[7][0]} {Logs[7][1]} {Logs[7][2]} {Logs[7][3]} {Logs[7][4]} {Logs[7][5]}", key='Log7')],
+    [sg.Text(f"{Logs[8][0]} {Logs[8][1]} {Logs[8][2]} {Logs[8][3]} {Logs[8][4]} {Logs[8][5]}", key='Log8')],
+    [sg.Text(f"{Logs[9][0]} {Logs[9][1]} {Logs[9][2]} {Logs[9][3]} {Logs[9][4]} {Logs[9][5]}", key='Log9')],
 ]
 
 layout3 = [
-    [sg.Text('Connection:'),sg.Text(Connected,key='status') ,sg.Text(' Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo'),sg.Text(' Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('On', group_id=1,key='On'),sg.Text(' Sound:'),sg.Radio('Off', group_id=2,key='B_Off'), sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Button('Reset')],
+    [sg.Text('Connection:'),sg.Text(Connected,key='status') ,sg.Text(' Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.Text(' Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('On', group_id=1,key='On'),sg.Text(' Sound:'),sg.Radio('Off', group_id=2,key='B_Off'), sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Button('Reset')],
     [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)],
     [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)]
 ]
@@ -189,7 +184,10 @@ figure_canvas_agg.draw()
 
 #===================================================================================
 #Values variables
-
+COM='COM3'
+angulo=90
+distancia=50
+tempo=100
 
 #===================================================================================
 
@@ -204,17 +202,38 @@ while True:
     window['Log2'].update(f"{Logs[2][0]} {Logs[2][1]} {Logs[2][2]} {Logs[2][3]} {Logs[2][4]} {Logs[2][5]}")
     window['Log3'].update(f"{Logs[3][0]} {Logs[3][1]} {Logs[3][2]} {Logs[3][3]} {Logs[3][4]} {Logs[3][5]}")
     window['Log4'].update(f"{Logs[4][0]} {Logs[4][1]} {Logs[4][2]} {Logs[4][3]} {Logs[4][4]} {Logs[4][5]}")
+    window['Log5'].update(f"{Logs[5][0]} {Logs[5][1]} {Logs[5][2]} {Logs[5][3]} {Logs[5][4]} {Logs[5][5]}")
+    window['Log6'].update(f"{Logs[6][0]} {Logs[6][1]} {Logs[6][2]} {Logs[6][3]} {Logs[6][4]} {Logs[6][5]}")
+    window['Log7'].update(f"{Logs[7][0]} {Logs[7][1]} {Logs[7][2]} {Logs[7][3]} {Logs[7][4]} {Logs[7][5]}")
+    window['Log8'].update(f"{Logs[8][0]} {Logs[8][1]} {Logs[8][2]} {Logs[8][3]} {Logs[8][4]} {Logs[8][5]}")
+    window['Log9'].update(f"{Logs[9][0]} {Logs[9][1]} {Logs[9][2]} {Logs[9][3]} {Logs[9][4]} {Logs[9][5]}")
 
     #Read values from GUI
     event, values = window.read(timeout=0.01)
-    COM=values['combo']
-    Logsulo=values['slider']
+    
+    #Events
+    if event == 'combo_COM':
+        COM=values['combo_COM']
+        try:
+            ser.close()
+        except:
+            pass
+        Connected=False
+    
+    if event == 'slider':
+        angulo=values['slider']
 
-    if values['B_On']:
-        buzzer=True
+    if event == 'combo_distance':
+        distancia=values['combo_distance']
 
-    if values['B_Off']:
-        buzzer=False
+    if event == 'combo_time':
+        tempo=values['combo_time']
+
+    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
+        break
+
+    if event == "Reset":
+        continue
 
     #===================================================================================
     #Update connection status
@@ -225,31 +244,33 @@ while True:
         except:
             Connected = False
             
-    if not Connected:
+    if Connected:
         try:
-            if status != values['Off'] and status==False:#!!!!!!
-                ser.write("DEFAULT".encode())
-                status=values['On']
-
-            if status != values['On'] and status==False:#!!!!!!
-                ser.write("BUTTON".encode())
-                status=values['Off']
-
-            Connected = True
+            if ser.is_open:
+                Connected = True
         except:
             Connected = False
 
     #===================================================================================
-    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
-        break
 
-    if event == "Reset":
-        continue
-    
     try:
         update(None)
     except:
-        pass
+        Connected=False
+        #Clear plot and Logs data
+        angles.clear()
+        distances.clear()
+        seismo_distances = [0] * max_points  
+        recorded_distances.clear()
+        sweep_line.set_data([], [])
+        scatter.set_offsets(np.empty((0, 2)))
+        line.set_data([], [])
+        Log_angle.clear()
+        Log_distances.clear()
+        Log_times.clear()
+        Logs.clear()
+        Logs = [[' ' for x in range(6)] for y in range(10)]     
+
     figure_canvas_agg.draw_idle()   
 
 window.close()
