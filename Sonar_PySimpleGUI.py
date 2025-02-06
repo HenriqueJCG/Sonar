@@ -22,6 +22,7 @@ Connected=False
 # Global variables to hold data
 max_distance = 50  # Maximum radar range in cm
 max_points = 100  # Number of points to display in seismograph
+Logs_max= 10
 angles = []
 distances = []
 Log_angle = []
@@ -101,15 +102,12 @@ def update(frame):
             Log_angle.append(angle)
             Log_times.append(current_time)
 
-        if len(Log_angle) > 10:
+        if len(Log_angle) > Logs_max:
             Log_angle.pop(0)
             Log_distances.pop(0)
             Log_times.pop(0)
 
-        siz=len(Log_angle)
-        if siz>10:
-            siz=10
-        for j in range(siz):
+        for j in range(len(Log_angle)):
             Logs[j][0]='Angle: '
             Logs[j][1]=Log_angle[(-1-j)]
             Logs[j][2]='°,   Distance: '
@@ -144,7 +142,7 @@ layout1 = [ #Slider
 
 
 layout2 = [
-    [sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, justification="center")] for i in range(10)
+    [sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, justification="center")] for i in range(Logs_max)
 ]
 
 
@@ -190,7 +188,7 @@ while True:
     color = "green" if Connected else "red"
     window['status'].update(Connected, text_color=color)
 
-    for i in range(10):  
+    for i in range(Logs_max):  
         window[f'Log{i}'].update(" ".join(map(str, Logs[i])))
 
     #Read values from GUI
