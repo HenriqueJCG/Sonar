@@ -40,7 +40,7 @@ fig=plt.figure() #Initialize figure
 # Sonar (polar plot)
 radar_ax = plt.subplot(3, 1, (1, 2), polar=True)
 
-radar_ax.set_theta_zero_location("W")  # 0 degrees in the left
+radar_ax.set_theta_zero_location("E")  # 0 degrees in the left
 radar_ax.set_theta_direction(1)       # Anticlockwise direction
 radar_ax.set_ylim(0, max_distance)      # Define max distance
 radar_ax.set_title("Sonar")
@@ -137,17 +137,17 @@ layout0 = [ #Plots
 
 layout1 = [ #Slider
     [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider')],
-    [sg.Text(' Delay: '),sg.Combo(["70","85","100","115","130"],default_value="100",readonly=True,enable_events=True,key='combo_time'),sg.Text(' Distance: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo_distance')]
+    [sg.Text(' Delay: '),sg.Combo(["70","85","100","115","130"],default_value="100",readonly=True,enable_events=True,key='combo_time'),sg.VSeparator(),sg.Text(' Distance: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo_distance')]
 ]
 
 
 layout2 = [
-    [sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, justification="center")] for i in range(Logs_max)
+    [sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True,expand_y=True, justification="center")] for i in range(Logs_max)
 ]
 
 
 layout3 = [
-    [sg.Text(' Connection:'),sg.Text(Connected,key='status') ,sg.Text('  Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.Text('  Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('On', group_id=1,key='On'),sg.Text('  Sound:'),sg.Radio('Off', group_id=2,key='B_Off'), sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Button('Reset')],
+    [sg.Text(' Connection:'),sg.Text(Connected,key='status'), sg.VSeparator(),sg.Text('  Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.VSeparator(),sg.Text('  Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('Auto', group_id=1,key='Auto'),sg.Radio('Manual',group_id=1,key='Manual'),sg.VSeparator(),sg.Text('  Sound:'),sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Radio('Off', group_id=2,key='B_Off'),sg.VSeparator(),sg.Button('Reset')],
     [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)],
     [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)]
 ]
@@ -235,6 +235,8 @@ while True:
         try:
             if ser.is_open:
                 Connected = True
+            else:
+                Connected = False
         except:
             Connected = False
 
@@ -243,7 +245,10 @@ while True:
     try:
         update(None)
     except:
-        Connected=False
+        try:
+            ser.close()
+        except:
+            pass
         #Clear plot and Logs data
         angles.clear()
         distances.clear()
