@@ -144,20 +144,12 @@ layout1 = [ #Slider
 
 
 layout2 = [
-    [sg.Text(f"{Logs[0][0]} {Logs[0][1]} {Logs[0][2]} {Logs[0][3]} {Logs[0][4]} {Logs[0][5]}", key='Log0')],
-    [sg.Text(f"{Logs[1][0]} {Logs[1][1]} {Logs[1][2]} {Logs[1][3]} {Logs[1][4]} {Logs[1][5]}", key='Log1')],
-    [sg.Text(f"{Logs[2][0]} {Logs[2][1]} {Logs[2][2]} {Logs[2][3]} {Logs[2][4]} {Logs[2][5]}", key='Log2')],
-    [sg.Text(f"{Logs[3][0]} {Logs[3][1]} {Logs[3][2]} {Logs[3][3]} {Logs[3][4]} {Logs[3][5]}", key='Log3')],
-    [sg.Text(f"{Logs[4][0]} {Logs[4][1]} {Logs[4][2]} {Logs[4][3]} {Logs[4][4]} {Logs[4][5]}", key='Log4')],
-    [sg.Text(f"{Logs[5][0]} {Logs[5][1]} {Logs[5][2]} {Logs[5][3]} {Logs[5][4]} {Logs[5][5]}", key='Log5')],
-    [sg.Text(f"{Logs[6][0]} {Logs[6][1]} {Logs[6][2]} {Logs[6][3]} {Logs[6][4]} {Logs[6][5]}", key='Log6')],
-    [sg.Text(f"{Logs[7][0]} {Logs[7][1]} {Logs[7][2]} {Logs[7][3]} {Logs[7][4]} {Logs[7][5]}", key='Log7')],
-    [sg.Text(f"{Logs[8][0]} {Logs[8][1]} {Logs[8][2]} {Logs[8][3]} {Logs[8][4]} {Logs[8][5]}", key='Log8')],
-    [sg.Text(f"{Logs[9][0]} {Logs[9][1]} {Logs[9][2]} {Logs[9][3]} {Logs[9][4]} {Logs[9][5]}", key='Log9')],
+    [sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, justification="center")] for i in range(10)
 ]
 
+
 layout3 = [
-    [sg.Text('Connection:'),sg.Text(Connected,key='status') ,sg.Text(' Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.Text(' Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('On', group_id=1,key='On'),sg.Text(' Sound:'),sg.Radio('Off', group_id=2,key='B_Off'), sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Button('Reset')],
+    [sg.Text(' Connection:'),sg.Text(Connected,key='status') ,sg.Text('  Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.Text('  Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('On', group_id=1,key='On'),sg.Text('  Sound:'),sg.Radio('Off', group_id=2,key='B_Off'), sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Button('Reset')],
     [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)],
     [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)]
 ]
@@ -188,7 +180,6 @@ COM='COM3'
 angulo=90
 distancia=50
 tempo=100
-
 #===================================================================================
 
 #===================================================================================
@@ -196,17 +187,11 @@ tempo=100
 while True:
 
     #Update Text values
-    window['status'].update(Connected)
-    window['Log0'].update(f"{Logs[0][0]} {Logs[0][1]} {Logs[0][2]} {Logs[0][3]} {Logs[0][4]} {Logs[1][5]}")
-    window['Log1'].update(f"{Logs[1][0]} {Logs[1][1]} {Logs[1][2]} {Logs[1][3]} {Logs[1][4]} {Logs[1][5]}")
-    window['Log2'].update(f"{Logs[2][0]} {Logs[2][1]} {Logs[2][2]} {Logs[2][3]} {Logs[2][4]} {Logs[2][5]}")
-    window['Log3'].update(f"{Logs[3][0]} {Logs[3][1]} {Logs[3][2]} {Logs[3][3]} {Logs[3][4]} {Logs[3][5]}")
-    window['Log4'].update(f"{Logs[4][0]} {Logs[4][1]} {Logs[4][2]} {Logs[4][3]} {Logs[4][4]} {Logs[4][5]}")
-    window['Log5'].update(f"{Logs[5][0]} {Logs[5][1]} {Logs[5][2]} {Logs[5][3]} {Logs[5][4]} {Logs[5][5]}")
-    window['Log6'].update(f"{Logs[6][0]} {Logs[6][1]} {Logs[6][2]} {Logs[6][3]} {Logs[6][4]} {Logs[6][5]}")
-    window['Log7'].update(f"{Logs[7][0]} {Logs[7][1]} {Logs[7][2]} {Logs[7][3]} {Logs[7][4]} {Logs[7][5]}")
-    window['Log8'].update(f"{Logs[8][0]} {Logs[8][1]} {Logs[8][2]} {Logs[8][3]} {Logs[8][4]} {Logs[8][5]}")
-    window['Log9'].update(f"{Logs[9][0]} {Logs[9][1]} {Logs[9][2]} {Logs[9][3]} {Logs[9][4]} {Logs[9][5]}")
+    color = "green" if Connected else "red"
+    window['status'].update(Connected, text_color=color)
+
+    for i in range(10):  
+        window[f'Log{i}'].update(" ".join(map(str, Logs[i])))
 
     #Read values from GUI
     event, values = window.read(timeout=0.01)
@@ -233,7 +218,11 @@ while True:
         break
 
     if event == "Reset":
-        continue
+        Log_angle.clear()
+        Log_distances.clear()
+        Log_times.clear()
+        Logs.clear()
+        Logs = [[' ' for x in range(6)] for y in range(10)] 
 
     #===================================================================================
     #Update connection status
