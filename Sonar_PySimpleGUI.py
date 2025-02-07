@@ -1,4 +1,6 @@
 #Import libraries
+import os
+import sys
 import serial
 import psycopg2
 import numpy as np
@@ -36,8 +38,8 @@ Logs = [[' ' for x in range(6)] for y in range(10)]
 fig=plt.figure() #Initialize figure
 
 # Choose Themes
-fig.patch.set_facecolor("#e5dece")
-sg.change_look_and_feel('Tan Blue')
+fig.patch.set_facecolor("#fafafa")
+sg.change_look_and_feel('LightGrey')
 
 #======================================================================
 # Sonar (polar plot)
@@ -62,7 +64,6 @@ seismo_ax = plt.subplot(3,1,3)
 seismo_ax.set_xlim(0, max_points)
 seismo_ax.set_ylim(0, max_distance)
 seismo_ax.set_title("Distance over time")
-seismo_ax.set_xlabel("Time")
 seismo_ax.set_ylabel("Distance (cm)")
 seismo_ax.grid(color="gray", linestyle="--", linewidth=0.5)
 
@@ -128,10 +129,11 @@ def update(frame):
 
 #ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
 
-#======================================================================
+#================================================================================
+
+#================================================================================
 #PySimpleGUI
 
-#===================================================================================
 #Layouts
 layout0 = [ #Plots
     [sg.Canvas(key="-CANVAS-", expand_x=True, expand_y=True)]
@@ -142,14 +144,12 @@ layout1 = [ #Slider
     [sg.Text(' Delay: '),sg.Combo(["70","85","100","115","130"],default_value="100",readonly=True,enable_events=True,key='combo_time'),sg.VSeparator(),sg.Text(' Distance: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo_distance')]
 ]
 
-
 layout2 = []
 for i in range(Logs_max):
     layout2.append([sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, expand_y=True, justification="center")])
     
     if i < Logs_max - 1:
         layout2.append([sg.HorizontalSeparator()])
-
 
 layout3 = [
     [sg.Text(' Connection:'),sg.Text(Connected,key='status'), sg.VSeparator(),sg.Text('  Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.VSeparator(),sg.Text('  Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('Auto', group_id=1,key='Auto'),sg.Radio('Manual',group_id=1,key='Manual'),sg.VSeparator(),sg.Text('  Sound:'),sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Radio('Off', group_id=2,key='B_Off'),sg.VSeparator(),sg.Button('Reset')],
@@ -159,7 +159,7 @@ layout3 = [
 
 layout = [
     [sg.Column([
-        [sg.Frame("Graphs", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
+        [sg.Frame("Graphics", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True),
     
     sg.Column([
@@ -168,7 +168,7 @@ layout = [
 ]
 #===================================================================================
 #Window
-window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True)
+window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True,return_keyboard_events=True)
 window.bind("<Control-w>", "Ctrl+W")
 window.maximize()
 
@@ -221,11 +221,13 @@ while True:
         break
 
     if event == "Reset":
-        Log_angle.clear()
-        Log_distances.clear()
-        Log_times.clear()
-        Logs.clear()
-        Logs = [[' ' for x in range(6)] for y in range(10)] 
+        try:
+            ser.close()  # Close if open
+        except:
+            pass
+        window.close()
+        sys.stdout.flush()
+        os.execv(sys.executable, ['python'] + sys.argv)
 
     #===================================================================================
     #Update connection status
