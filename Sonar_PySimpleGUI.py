@@ -33,8 +33,11 @@ seismo_times = []  # For last 50 times
 seismo_distances = [0] * max_points  # Initialize with zeros
 Logs = [[' ' for x in range(6)] for y in range(10)] 
 #======================================================================
-
 fig=plt.figure() #Initialize figure
+
+# Choose Themes
+fig.patch.set_facecolor("#e5dece")
+sg.change_look_and_feel('Tan Blue')
 
 #======================================================================
 # Sonar (polar plot)
@@ -127,7 +130,6 @@ def update(frame):
 
 #======================================================================
 #PySimpleGUI
-sg.change_look_and_feel('SystemDefault')# Choose Theme
 
 #===================================================================================
 #Layouts
@@ -141,24 +143,27 @@ layout1 = [ #Slider
 ]
 
 
-layout2 = [
-    [sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True,expand_y=True, justification="center")] for i in range(Logs_max)
-]
+layout2 = []
+for i in range(Logs_max):
+    layout2.append([sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, expand_y=True, justification="center")])
+    
+    if i < Logs_max - 1:
+        layout2.append([sg.HorizontalSeparator()])
 
 
 layout3 = [
     [sg.Text(' Connection:'),sg.Text(Connected,key='status'), sg.VSeparator(),sg.Text('  Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.VSeparator(),sg.Text('  Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off'), sg.Radio('Auto', group_id=1,key='Auto'),sg.Radio('Manual',group_id=1,key='Manual'),sg.VSeparator(),sg.Text('  Sound:'),sg.Radio('On', group_id=2, default=True,key='B_On'),sg.Radio('Off', group_id=2,key='B_Off'),sg.VSeparator(),sg.Button('Reset')],
-    [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)],
-    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True)]
+    [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True,font=("Any", 12, "bold"))],
+    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True,font=("Any", 12, "bold"))]
 ]
 
 layout = [
     [sg.Column([
-        [sg.Frame("Plots", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP)]
+        [sg.Frame("Graphs", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True),
     
     sg.Column([
-        [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP)]
+        [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True)]
 ]
 #===================================================================================
