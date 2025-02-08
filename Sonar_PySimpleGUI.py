@@ -123,7 +123,12 @@ def update(frame):
                 Logs[j][3]=Log_distances[(-1-j)]
                 Logs[j][4]='cm,  Time: '
                 Logs[j][5]=Log_times[(-1-j)]
-
+        else:
+            if data in ["DEFAULT", "AUTO", "MANUAL"]:  
+                window["Off"].update(value=(data == "DEFAULT"))
+                window["Auto"].update(value=(data == "AUTO"))
+                window["Manual"].update(value=(data == "MANUAL"))
+                
     # Update radar
     current_angle = angles[-1] if angles else 0
     sweep_line.set_data([0, current_angle], [0, max_distance])
@@ -213,7 +218,7 @@ while True:
         window[element].update(disabled=not Connected)
 
     #Read values from GUI
-    event, values = window.read(timeout=0.1)
+    event, values = window.read(timeout=0.01)
     window['slider'].update(disabled=not (values['Manual']))        
     
     #Events

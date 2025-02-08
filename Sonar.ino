@@ -37,7 +37,7 @@ String command;
 int delay_time = 100;
 int max_distance = 50;
 bool Buzzer = true;
-int ite=90;
+int ite = 90;
 bool crescente = true;
 
 //===============================================================================================================
@@ -89,9 +89,18 @@ void loop() {
     command = Serial.readStringUntil('\n');
     command.trim();
     if (!isDigit(command.charAt(0))) {
-      if (command == "DEFAULT") current_mode = DEFAULT_MODE;
-      if (command == "AUTO") current_mode = AUTO_MODE;
-      if (command == "MANUAL") current_mode = MANUAL_MODE;
+      if (command == "DEFAULT"){
+         current_mode = DEFAULT_MODE;
+         ite = 90;
+      }
+      if (command == "AUTO"){
+         current_mode = AUTO_MODE;
+         ite = 90;
+      }
+      if (command == "MANUAL"){
+         current_mode = MANUAL_MODE;
+         ite = 90;
+      }
       if (command == "BUZZ_ON") Buzzer = true;
       if (command == "BUZZ_OFF") Buzzer = false;
     }
@@ -120,34 +129,19 @@ void loop() {
     // Green Led on
     digitalWrite(2, HIGH);
 
-    // rotates the servo motor from 15 to 165 degrees
-    for (int i = 90; i <= 165; i++) {
-      verifica(i, 50, Buzzer);
-      if (digitalRead(A5) == HIGH) {
-        current_mode = DEFAULT_MODE;
-        Serial.println("DEFAULT");
-        delay(500);
-        return;
-      }
+    verifica(ite, 50, Buzzer);
+    if (digitalRead(A5) == HIGH) {
+      current_mode = DEFAULT_MODE;
+      Serial.println("DEFAULT");
+      ite = 90;
+      delay(500);
+      return;
     }
-    for (int i = 165; i > 15; i--) {
-      verifica(i, 50, Buzzer);
-      if (digitalRead(A5) == HIGH) {
-        current_mode = DEFAULT_MODE;
-        Serial.println("DEFAULT");
-        delay(500);
-        return;
-      }
-    }
-    for (int i = 15; i <= 90; i++) {
-      verifica(i, 50, Buzzer);
-      if (digitalRead(A5) == HIGH) {
-        current_mode = DEFAULT_MODE;
-        Serial.println("DEFAULT");
-        delay(500);
-        return;
-      }
-    }
+    if (ite==165) crescente=false;
+    if (ite==15) crescente=true; 
+    if ((ite<165) && crescente==true) ite++;
+    if ((ite>15) && crescente==false) ite--;
+
   } else if (current_mode == MANUAL_MODE) {
     digitalWrite(2, HIGH);
 
