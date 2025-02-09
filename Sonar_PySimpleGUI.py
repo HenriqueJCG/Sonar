@@ -172,11 +172,11 @@ layout0 = [ #Plots
 
 layout1 = [ #Manual Mode
     [sg.Text('\nDetection Angle: (°)',justification='center', expand_x=True)],
-    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider_angle',pad=(75,0))],
+    [sg.Text('165',pad=((75,0),0)),sg.Slider(range=(165,15),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider_angle'),sg.Text('15 ',pad=((0,75),0))],
     [sg.Text('\nMax Distance Detection: (cm)',justification='center', expand_x=True)],
-    [sg.Slider(range=(10,90),enable_events=True,expand_x=True,orientation='horizontal',default_value=50,key='slider_distance',pad=(75,0))],
+    [sg.Text(' 10',pad=((75,0),0)),sg.Slider(range=(10,90),enable_events=True,expand_x=True,orientation='horizontal',default_value=50,key='slider_distance'),sg.Text('90 ',pad=((0,75),0))],
     [sg.Text('\nDetection Delay: (ms)',justification='center', expand_x=True)],
-    [sg.Slider(range=(70,130),enable_events=True,expand_x=True,orientation='horizontal',default_value=100,key='slider_delay',pad=(75,0))],
+    [sg.Text(' 70',pad=((75,0),0)),sg.Slider(range=(70,130),enable_events=True,expand_x=True,orientation='horizontal',default_value=100,key='slider_delay'),sg.Text('130',pad=((0,75),0))],
     [sg.Text('')]
 ]
 
@@ -204,21 +204,21 @@ tab_layout1 = [
     ], expand_x=True, expand_y=True)]
 ]
 
-layout5 = [
+layout4 = [
     [sg.Text("")]
 ]
 
-layout6 = [
+layout5 = [
     [sg.Text("")]
 ]
 
 tab_layout2 = [
     [sg.Column([
-        [sg.Frame("", layout5, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
+        [sg.Frame("Save", layout4, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True),
     
     sg.Column([
-        [sg.Frame("", layout6, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
+        [sg.Frame("Search", layout5, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True)]
 ]
 
@@ -241,16 +241,12 @@ angulo=90
 distancia=50
 tempo=100
 
-# 0-DEFAULT_MODE 1-AUTO_MODE 2-MANUAL_MODE
-Mode=0
-Sound=True
-
 elements_to_disable = [
     'slider_angle', 'slider_delay', 'slider_distance', 'Off', 'B_On', 'B_Off'  ,'Auto','Manual'
 ]
 #===================================================================================
 
-#===================================================================================
+#=======================================================================================================================================================================
 #GUI Loop
 while True:
 
@@ -258,6 +254,10 @@ while True:
     event, values = window.read(timeout=0.01)
 
     if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
+        try:
+            ser.write(b"DEFAULT\n")
+        except:
+            break
         break
 
     #Update Text values and Blocked elements
@@ -271,18 +271,14 @@ while True:
         window[element].update(disabled=not Connected)
 
     window['slider_angle'].update(disabled=not (values['Manual']))
-    window['slider_delay'].update(disabled=not (values['Manual'])) 
-    window['slider_distance'].update(disabled=not (values['Manual']))      
+    #window['slider_delay'].update(disabled=not (values['Manual'])) 
+    #window['slider_distance'].update(disabled=not (values['Manual']))      
         
     #Events
     if event == 'combo_COM':
         COM=values['combo_COM']
         try:
-            window["Off"].update(value=True)
-            window["Auto"].update(value=False)
-            window["Manual"].update(value=False)
-            window["B_On"].update(value=True)
-            window["B_Off"].update(value=False)
+            ser.write(b"DEFAULT\n") 
             ser.close()
         except:
             pass
@@ -319,14 +315,18 @@ while True:
     #Detects new events
     if event == 'slider_angle':
         angulo=values['slider_angle']
+        ser.write(f"A,{angulo}\n".encode())
 
     if event == 'slider_distance':
         max_distance=values['slider_distance']
+        ser.write(f"M,{max_distance}\n".encode())
+
         radar_ax.set_ylim(0, max_distance)
         seismo_ax.set_ylim(0, max_distance)
 
     if event == 'slider_delay':
         tempo=values['slider_delay']
+        ser.write(f"D,{tempo}\n".encode())
 
     if event == "Reset":
         try:
@@ -361,15 +361,23 @@ while True:
         update(None)
     except:
         try:
-            window["Off"].update(value=True)
-            window["Auto"].update(value=False)
-            window["Manual"].update(value=False)
-            window["B_On"].update(value=True)
-            window["B_Off"].update(value=False)
             ser.close()
         except:
             pass
+
+        #Update windows
+        window["Off"].update(value=True)
+        window["Auto"].update(value=False)
+        window["Manual"].update(value=False)
+        window["B_On"].update(value=True)
+        window["B_Off"].update(value=False)
+        window["slider_angle"].update(value=90)
+        window["slider_delay"].update(value=100)
+        window["slider_distance"].update(value=50)
         #Clear plot and Logs data
+        angulo=90
+        tempo=100
+        max_distance=50
         angles.clear()
         distances.clear()
         seismo_distances = [0] * max_points 
@@ -389,4 +397,4 @@ while True:
     figure_canvas_agg.draw_idle()   
 
 window.close()
-#===================================================================================
+#=======================================================================================================================================================================

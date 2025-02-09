@@ -33,13 +33,14 @@ const int AUTO_MODE = 1;
 const int MANUAL_MODE = 2;
 int current_mode = DEFAULT_MODE;
 int speakerPin = 5;
+
 String command;
 int delay_time = 100;
-int max_distance = 50;
+int Max_distance = 50;
 bool Buzzer = true;
 int ite = 90;
 bool crescente = true;
-
+int angle = 90;
 //===============================================================================================================
 // Check distance and serialprints
 void verifica(int j, int max, bool buzzer) {
@@ -89,24 +90,28 @@ void loop() {
     command = Serial.readStringUntil('\n');
     command.trim();
     if (!isDigit(command.charAt(0))) {
-      if (command == "DEFAULT"){
-         current_mode = DEFAULT_MODE;
-         ite = 90;
-         crescente = true;
+      if (command == "DEFAULT") {
+        current_mode = DEFAULT_MODE;
+        ite = 90;
+        crescente = true;
       }
-      if (command == "AUTO"){
-         current_mode = AUTO_MODE;
-         ite = 90;
-         crescente = true;
+      else if (command == "AUTO") {
+        current_mode = AUTO_MODE;
+        ite = 90;
+        crescente = true;
       }
-      if (command == "MANUAL"){
-         current_mode = MANUAL_MODE;
-         ite = 90;
-         crescente = true;
+      else if (command == "MANUAL") {
+        current_mode = MANUAL_MODE;
+        ite = 90;
+        crescente = true;
       }
       if (command == "BUZZ_ON") Buzzer = true;
-      if (command == "BUZZ_OFF") Buzzer = false;
-      
+      else if (command == "BUZZ_OFF") Buzzer = false;
+      if (command.charAt(1) == ',') {
+        if (command.charAt(0) == 'A') angle = command.substring(2).toInt();
+        if (command.charAt(0) == 'M') Max_distance = command.substring(2).toInt();
+        if (command.charAt(0) == 'D') delay_time = command.substring(2).toInt();
+      }
     }
   }
   if (current_mode == DEFAULT_MODE) {  // Default mode is idle, turned off
@@ -133,24 +138,24 @@ void loop() {
     // Green Led on
     digitalWrite(2, HIGH);
 
-    verifica(ite, 50, Buzzer);
+    verifica(ite, Max_distance, Buzzer);
     if (digitalRead(A5) == HIGH) {
       current_mode = DEFAULT_MODE;
       Serial.println("DEFAULT");
       ite = 90;
-      crescente==true;
+      crescente == true;
       delay(500);
       return;
     }
-    if (ite==165) crescente=false;
-    if (ite==15) crescente=true; 
-    if ((ite<165) && crescente==true) ite++;
-    if ((ite>15) && crescente==false) ite--;
+    if (ite == 165) crescente = false;
+    if (ite == 15) crescente = true;
+    if ((ite < 165) && crescente == true) ite++;
+    if ((ite > 15) && crescente == false) ite--;
 
   } else if (current_mode == MANUAL_MODE) {
     digitalWrite(2, HIGH);
 
-    verifica(90, 50, Buzzer);
+    verifica(angle, Max_distance, Buzzer);
     if (digitalRead(A5) == HIGH) {
       current_mode = DEFAULT_MODE;
       Serial.println("DEFAULT");
