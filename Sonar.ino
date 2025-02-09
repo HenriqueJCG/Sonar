@@ -29,30 +29,41 @@ int calculateDistance() {
 
 //========================================================================================================
 const int DEFAULT_MODE = 0;
-const int BUTTON_MODE = 1;
+const int AUTO_MODE = 1;
+const int MANUAL_MODE = 2;
 int current_mode = DEFAULT_MODE;
 int speakerPin = 5;
+String command;
+int delay_time = 100;
+int max_distance = 50;
+bool Buzzer = true;
+int ite = 90;
+bool crescente = true;
 
 //===============================================================================================================
 // Check distance and serialprints
-void verifica(int i) {
-  myServo.write(i);
+void verifica(int j, int max, bool buzzer) {
+  myServo.write(j);
   distance = calculateDistance();
 
-  if (distance < 50) {
+  if (distance < max) {
     digitalWrite(3, HIGH);
-    for (int i = 0; i < 10; i++) {
-      digitalWrite(speakerPin, HIGH);
-      delayMicroseconds(500);
-      digitalWrite(speakerPin, LOW);
-      delayMicroseconds(500);
+    if (buzzer == true) {
+      for (int i = 0; i < 30; i++) {
+        digitalWrite(speakerPin, HIGH);
+        delayMicroseconds(500);
+        digitalWrite(speakerPin, LOW);
+        delayMicroseconds(500);
+      }
+      delay(max(10, delay_time - 30));
+    } else {
+      delay(delay_time);
     }
-    delay(20);
   } else {
     digitalWrite(3, LOW);
-    delay(30);
+    delay(delay_time);
   }
-  Serial.print(i);
+  Serial.print(j);
   Serial.print(",");
   Serial.println(distance);
 }
@@ -74,6 +85,29 @@ void setup() {
 //===============================================================================================================
 // Loop
 void loop() {
+  if (Serial.available() > 0) {
+    command = Serial.readStringUntil('\n');
+    command.trim();
+    if (!isDigit(command.charAt(0))) {
+      if (command == "DEFAULT"){
+         current_mode = DEFAULT_MODE;
+         ite = 90;
+         crescente==true
+      }
+      if (command == "AUTO"){
+         current_mode = AUTO_MODE;
+         ite = 90;
+         crescente==true
+      }
+      if (command == "MANUAL"){
+         current_mode = MANUAL_MODE;
+         ite = 90;
+         crescente==true
+      }
+      if (command == "BUZZ_ON") Buzzer = true;
+      if (command == "BUZZ_OFF") Buzzer = false;
+    }
+  }
   if (current_mode == DEFAULT_MODE) {  // Default mode is idle, turned off
     //Leds off
     digitalWrite(2, LOW);
@@ -82,47 +116,45 @@ void loop() {
 
     // Servo in the middle
     myServo.write(90);
-    delay(30);
+    delay(delay_time);
 
     Serial.print(90);
     Serial.print(",");
     Serial.println(1000);
 
     if (digitalRead(A5) == HIGH) {
-      current_mode = BUTTON_MODE;
+      current_mode = AUTO_MODE;
+      Serial.println("AUTO");
       delay(500);
     }
 
-  } else {
-    if (current_mode == BUTTON_MODE) {
-      // Green Led on
-      digitalWrite(2, HIGH);
+  } else if (current_mode == AUTO_MODE) {
+    // Green Led on
+    digitalWrite(2, HIGH);
 
-      // rotates the servo motor from 15 to 165 degrees
-      for (int i = 90; i <= 165; i++) {
-        verifica(i);
-        if (digitalRead(A5) == HIGH) {
-          current_mode = DEFAULT_MODE;
-          delay(500);
-          return;
-        }
-      }
-      for (int i = 165; i > 15; i--) {
-        verifica(i);
-        if (digitalRead(A5) == HIGH) {
-          current_mode = DEFAULT_MODE;
-          delay(500);
-          return;
-        }
-      }
-      for (int i = 15; i <= 90; i++) {
-        verifica(i);
-        if (digitalRead(A5) == HIGH) {
-          current_mode = DEFAULT_MODE;
-          delay(500);
-          return;
-        }
-      }
+    verifica(ite, 50, Buzzer);
+    if (digitalRead(A5) == HIGH) {
+      current_mode = DEFAULT_MODE;
+      Serial.println("DEFAULT");
+      ite = 90;
+      crescente==true
+      delay(500);
+      return;
+    }
+    if (ite==165) crescente=false;
+    if (ite==15) crescente=true; 
+    if ((ite<165) && crescente==true) ite++;
+    if ((ite>15) && crescente==false) ite--;
+
+  } else if (current_mode == MANUAL_MODE) {
+    digitalWrite(2, HIGH);
+
+    verifica(90, 50, Buzzer);
+    if (digitalRead(A5) == HIGH) {
+      current_mode = DEFAULT_MODE;
+      Serial.println("DEFAULT");
+      delay(500);
+      return;
     }
   }
 }

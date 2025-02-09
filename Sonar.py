@@ -1,10 +1,10 @@
 #Import libraries
 import serial
+import psycopg2
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
-import psycopg2
 
 #Conexao base dados PostgreSQL
 #conn = psycopg2.connect("host=localhost dbname=postgres user=postgres password=postgres")
@@ -15,15 +15,16 @@ import psycopg2
 #cur.close()
 #conn.close()
 
+COM="COM3"
 
 # Serial setup
 try:
-    ser = serial.Serial("COM3", 9600, timeout=0.1)
-    Connected=True
+    ser = serial.Serial(COM, 9600, timeout=0.1)
+    Connected = True
 except:
     print("Error! Not connected! Try again.")
-    Connected=False
-    
+    Connected = False
+
 #======================================================================
 # Global variables to hold data
 max_distance = 50  # Maximum radar range in cm
@@ -69,10 +70,11 @@ seismo_ax.grid(color="gray", linestyle="--", linewidth=0.5)
 line, = seismo_ax.plot([], [], color="red", linewidth=2)
 #======================================================================
 
-if Connected:
 
-    #======================================================================
-    # Update graphs
+#======================================================================
+# Update graphs
+
+if Connected:
     def update(frame):
         global angles, distances, seismo_distances
 
@@ -83,7 +85,7 @@ if Connected:
                 angle, distance = map(int, data.split(","))
                 angle_rad = np.deg2rad(angle)  # Convert angle to radians
 
-                 # Add data to radar
+                # Add data to radar
                 angles.append(angle_rad)
                 distances.append(distance)
 
@@ -116,7 +118,8 @@ if Connected:
 
         return sweep_line, scatter, line
 
-    # Update plots with Animation
+
+        # Update plots with Animation
     ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
 
 plt.show()
