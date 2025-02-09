@@ -10,7 +10,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
 
-#Conexao base dados PostgreSQL
 #conn = psycopg2.connect("host=localhost dbname=postgres user=postgres password=postgres")
 #cur = conn.cursor()
 #cur.execute("select id_utilizador,pass from utilizadores where email=%s", (email,))#verifica se existe email
@@ -124,6 +123,7 @@ def update(frame):
                 Logs[j][4]='cm,  Time: '
                 Logs[j][5]=Log_times[(-1-j)]
         else:
+            #Checks for mode change with physical button
             if data in ["DEFAULT", "AUTO", "MANUAL"]:  
                 window["Off"].update(value=(data == "DEFAULT"))
                 window["Auto"].update(value=(data == "AUTO"))
@@ -199,7 +199,7 @@ Mode=0
 Sound=True
 
 elements_to_disable = [
-    'slider', 'combo_time', 'combo_distance', 'Off', 'B_On', 'B_Off'
+    'slider', 'combo_time', 'combo_distance', 'Off', 'B_On', 'B_Off'  ,'Auto','Manual'
 ]
 #===================================================================================
 
@@ -207,7 +207,13 @@ elements_to_disable = [
 #GUI Loop
 while True:
 
-    #Update Text values
+    #Read values from GUI
+    event, values = window.read(timeout=0.01)
+
+    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
+        break
+
+    #Update Text values and Blocked elements
     color = "green" if Connected else "red"
     window['status'].update(Connected, text_color=color)
 
@@ -216,12 +222,6 @@ while True:
 
     for element in elements_to_disable:
         window[element].update(disabled=not Connected)
-
-    #Read values from GUI
-    event, values = window.read(timeout=0.01)
-
-    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
-        break
 
     window['slider'].update(disabled=not (values['Manual']))     
         
@@ -261,7 +261,7 @@ while True:
             ser.write(b"BUZZ_OFF\n") # Turn buzzer OFF
 
     #===================================================================================
-
+    #Detects new events
     if event == 'slider':
         angulo=values['slider']
 
@@ -299,7 +299,7 @@ while True:
             Connected = False
 
     #===================================================================================
-
+    #Update values
     try:
         update(None)
     except:
