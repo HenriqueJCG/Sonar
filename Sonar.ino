@@ -92,20 +92,21 @@ void loop() {
       if (command == "DEFAULT"){
          current_mode = DEFAULT_MODE;
          ite = 90;
-         crescente==true
+         crescente = true;
       }
       if (command == "AUTO"){
          current_mode = AUTO_MODE;
          ite = 90;
-         crescente==true
+         crescente = true;
       }
       if (command == "MANUAL"){
          current_mode = MANUAL_MODE;
          ite = 90;
-         crescente==true
+         crescente = true;
       }
       if (command == "BUZZ_ON") Buzzer = true;
       if (command == "BUZZ_OFF") Buzzer = false;
+      
     }
   }
   if (current_mode == DEFAULT_MODE) {  // Default mode is idle, turned off
@@ -137,7 +138,7 @@ void loop() {
       current_mode = DEFAULT_MODE;
       Serial.println("DEFAULT");
       ite = 90;
-      crescente==true
+      crescente==true;
       delay(500);
       return;
     }

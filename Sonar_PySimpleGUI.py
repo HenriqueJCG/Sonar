@@ -6,6 +6,7 @@ import psycopg2
 import numpy as np
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
@@ -29,12 +30,14 @@ distances = []
 Log_angle = []
 Log_distances = []
 Log_times = []
-recorded_distances = []  # To record all distances
-seismo_times = []  # For last 50 times
+recorded_distances = []  
+recorded_angles = []
+seismo_angles = [0] * max_points  # Initialize with zeros
 seismo_distances = [0] * max_points  # Initialize with zeros
 Logs = [[' ' for x in range(6)] for y in range(10)] 
 #======================================================================
 fig=plt.figure() #Initialize figure
+gs = gridspec.GridSpec(4, 1, height_ratios=[5, 1.5, 0.1, 1.5])  # Custom height ratios
 
 # Choose Themes
 fig.patch.set_facecolor("#e5dece")
@@ -42,7 +45,7 @@ sg.change_look_and_feel('Tan Blue')
 
 #======================================================================
 # Sonar (polar plot)
-radar_ax = plt.subplot(3, 1, (1, 2), polar=True)
+radar_ax = plt.subplot(gs[0], polar=True)
 
 radar_ax.set_theta_zero_location("E")  # 0 degrees in the left
 radar_ax.set_theta_direction(1)       # Anticlockwise direction
@@ -59,7 +62,7 @@ scatter = radar_ax.scatter([], [], color="red", s=10) # Sonar red dots
 
 #======================================================================
 # Distances (2D plot) 
-seismo_ax = plt.subplot(3,1,3)
+seismo_ax = plt.subplot(gs[1])
 
 seismo_ax.set_xlim(0, max_points)
 seismo_ax.set_ylim(0, max_distance)
@@ -72,11 +75,26 @@ seismo_ax.grid(color="gray", linestyle="--", linewidth=0.5)
 line, = seismo_ax.plot([], [], color="red", linewidth=2)
 #======================================================================
 
+#======================================================================
+# Angles (2D plot) 
+angle_ax = plt.subplot(gs[3])
+
+angle_ax.set_xlim(0, max_points)
+angle_ax.set_ylim((15), (165))
+angle_ax.set_title("Angle over time")
+angle_ax.set_ylabel("Angle (°)")
+angle_ax.title.set_color('#063289')
+#angle_ax.yaxis.label.set_color('#063289')
+angle_ax.grid(color="gray", linestyle="--", linewidth=0.5)
+
+line2, = angle_ax.plot([], [], color="blue", linewidth=2)
+#======================================================================
+
 
 #======================================================================
 # Update graphs
 def update(frame):
-    global angles, distances, seismo_distances
+    global angles, distances, seismo_distances, seismo_angles
 
     # Read data from Arduino
     if ser.in_waiting > 0:
@@ -94,11 +112,13 @@ def update(frame):
             current_time = datetime.now().timestamp()
             current_time = date_format = datetime.fromtimestamp(current_time).strftime('%H:%M:%S %d-%m-%Y')
             recorded_distances.append(distance)
+            recorded_angles.append(angle)
 
             #print("Tempo: ",current_time,"Logsulo: ",angle,"Distancia: ",distance)
             
             # Slice for the last `max_points`
             seismo_distances = recorded_distances[-max_points:]
+            seismo_angles = recorded_angles[-max_points:]
 
             # Limit the number of radar points
             if len(angles) > 30:
@@ -136,6 +156,7 @@ def update(frame):
 
     # Update seismograph
     line.set_data(range(len(seismo_distances)), seismo_distances)
+    line2.set_data(range(len(seismo_angles)), seismo_angles)
 
 #ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
 
@@ -150,8 +171,13 @@ layout0 = [ #Plots
 ]
 
 layout1 = [ #Manual Mode
-    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider')],
-    [sg.Text(' Delay: '),sg.Combo(["70","85","100","115","130"],default_value="100",readonly=True,enable_events=True,key='combo_time'),sg.VSeparator(),sg.Text(' Max Distance Detection: '),sg.Combo(["10","20","30","40","50","60","70","80","90","100"],default_value="50",readonly=True,enable_events=True,key='combo_distance')]
+    [sg.Text('\nDetection Angle: (°)',justification='center', expand_x=True)],
+    [sg.Slider(range=(15,165),enable_events=True,expand_x=True,orientation='horizontal',default_value=90,key='slider_angle',pad=(75,0))],
+    [sg.Text('\nMax Distance Detection: (cm)',justification='center', expand_x=True)],
+    [sg.Slider(range=(10,90),enable_events=True,expand_x=True,orientation='horizontal',default_value=50,key='slider_distance',pad=(75,0))],
+    [sg.Text('\nDetection Delay: (ms)',justification='center', expand_x=True)],
+    [sg.Slider(range=(70,130),enable_events=True,expand_x=True,orientation='horizontal',default_value=100,key='slider_delay',pad=(75,0))],
+    [sg.Text('')]
 ]
 
 layout2 = [] #Logs
@@ -159,23 +185,44 @@ for i in range(Logs_max):
     layout2.append([sg.Text(" ".join(map(str, Logs[i])), key=f'Log{i}', expand_x=True, expand_y=True, justification="center")])
     
     if i < Logs_max - 1:
-        layout2.append([sg.HorizontalSeparator()])
+        layout2.append([sg.HorizontalSeparator(pad=(75,0))])
 
 layout3 = [
+    [sg.Text('')],
     [sg.Text(' Connection:'),sg.Text(Connected,key='status'), sg.VSeparator(),sg.Text('  Port:'),sg.Combo(["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10"],default_value="COM3",readonly=True,enable_events=True,key='combo_COM'),sg.VSeparator(),sg.Text('  Mode:'),sg.Radio('Off', group_id=1, default=True,key='Off',enable_events=True), sg.Radio('Auto', group_id=1,key='Auto',enable_events=True),sg.Radio('Manual',group_id=1,key='Manual',enable_events=True),sg.VSeparator(),sg.Text('  Sound:'),sg.Radio('On', group_id=2, default=True,key='B_On',enable_events=True),sg.Radio('Off', group_id=2,key='B_Off',enable_events=True),sg.VSeparator(),sg.Button('Reset')],
     [sg.Frame("Logs",layout2,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True,font=("Any", 12, "bold"))],
-    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=True,font=("Any", 12, "bold"))]
+    [sg.Frame("Manual Mode",layout1,title_location=sg.TITLE_LOCATION_TOP, expand_x=True, expand_y=False,font=("Any", 12, "bold"))]
 ]
 
-layout = [
+tab_layout1 = [
     [sg.Column([
         [sg.Frame("", layout0, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True),
     
     sg.Column([
-        [sg.Frame("Control", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
+        [sg.Frame("", layout3, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
     ], expand_x=True, expand_y=True)]
 ]
+
+layout5 = [
+    [sg.Text("")]
+]
+
+layout6 = [
+    [sg.Text("")]
+]
+
+tab_layout2 = [
+    [sg.Column([
+        [sg.Frame("", layout5, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
+    ], expand_x=True, expand_y=True),
+    
+    sg.Column([
+        [sg.Frame("", layout6, size=(600, 600), expand_x=True, expand_y=True, title_location=sg.TITLE_LOCATION_TOP,font=("Any", 12, "bold"))]
+    ], expand_x=True, expand_y=True)]
+]
+
+layout = [[sg.TabGroup([[sg.Tab("Control Panel", tab_layout1,font=("Any", 12, "bold")), sg.Tab("Records", tab_layout2,font=("Any", 12, "bold"))]], expand_x=True, expand_y=True)]]
 #===================================================================================
 #Window
 window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True,return_keyboard_events=True)
@@ -199,7 +246,7 @@ Mode=0
 Sound=True
 
 elements_to_disable = [
-    'slider', 'combo_time', 'combo_distance', 'Off', 'B_On', 'B_Off'  ,'Auto','Manual'
+    'slider_angle', 'slider_delay', 'slider_distance', 'Off', 'B_On', 'B_Off'  ,'Auto','Manual'
 ]
 #===================================================================================
 
@@ -223,7 +270,9 @@ while True:
     for element in elements_to_disable:
         window[element].update(disabled=not Connected)
 
-    window['slider'].update(disabled=not (values['Manual']))     
+    window['slider_angle'].update(disabled=not (values['Manual']))
+    window['slider_delay'].update(disabled=not (values['Manual'])) 
+    window['slider_distance'].update(disabled=not (values['Manual']))      
         
     #Events
     if event == 'combo_COM':
@@ -242,34 +291,42 @@ while True:
     #===================================================================================
     #Update modes and sound with radios
 
-    if event in ('Auto', 'Manual', 'Off'):  # Radio button event
-        if values['Auto']:
-            ser.write(b"AUTO\n")  # Send "AUTO" to Arduino
-        elif values['Manual']:
-            ser.write(b"MANUAL\n")  # Send "MANUAL" to Arduino
-        elif values['Off']:
-            ser.write(b"DEFAULT\n")  # Send "DEFAULT" to Arduino
+    try:
+        if event in ('Auto', 'Manual', 'Off'):  # Radio button event
+            if values['Auto']:
+                ser.write(b"AUTO\n")  # Send "AUTO" to Arduino
+            elif values['Manual']:
+                ser.write(b"MANUAL\n")  # Send "MANUAL" to Arduino
+            elif values['Off']:
+                ser.write(b"DEFAULT\n")  # Send "DEFAULT" to Arduino
+    except:
+        pass
 
     #Blocks other mode
     #window['Auto'].update(disabled=not Connected or values['Manual'])
     #window['Manual'].update(disabled=not Connected or values['Auto'])
 
-    if event in ('B_On', 'B_Off'):
-        if values['B_On']:
-            ser.write(b"BUZZ_ON\n")  # Turn buzzer ON
-        else:
-            ser.write(b"BUZZ_OFF\n") # Turn buzzer OFF
+    try:
+        if event in ('B_On', 'B_Off'):
+            if values['B_On']:
+                ser.write(b"BUZZ_ON\n")  # Turn buzzer ON
+            else:
+                ser.write(b"BUZZ_OFF\n") # Turn buzzer OFF
+    except:
+        pass
 
     #===================================================================================
     #Detects new events
-    if event == 'slider':
-        angulo=values['slider']
+    if event == 'slider_angle':
+        angulo=values['slider_angle']
 
-    if event == 'combo_distance':
-        max_distance=values['combo_distance']
+    if event == 'slider_distance':
+        max_distance=values['slider_distance']
+        radar_ax.set_ylim(0, max_distance)
+        seismo_ax.set_ylim(0, max_distance)
 
-    if event == 'combo_time':
-        tempo=values['combo_time']
+    if event == 'slider_delay':
+        tempo=values['slider_delay']
 
     if event == "Reset":
         try:
@@ -315,11 +372,14 @@ while True:
         #Clear plot and Logs data
         angles.clear()
         distances.clear()
-        seismo_distances = [0] * max_points  
+        seismo_distances = [0] * max_points 
+        seismo_angles = [0] * max_points 
         recorded_distances.clear()
+        recorded_angles.clear()
         sweep_line.set_data([], [])
         scatter.set_offsets(np.empty((0, 2)))
         line.set_data([], [])
+        line2.set_data([], [])
         Log_angle.clear()
         Log_distances.clear()
         Log_times.clear()
