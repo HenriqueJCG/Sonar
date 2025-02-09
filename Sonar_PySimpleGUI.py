@@ -128,7 +128,7 @@ def update(frame):
                 window["Off"].update(value=(data == "DEFAULT"))
                 window["Auto"].update(value=(data == "AUTO"))
                 window["Manual"].update(value=(data == "MANUAL"))
-                
+
     # Update radar
     current_angle = angles[-1] if angles else 0
     sweep_line.set_data([0, current_angle], [0, max_distance])
@@ -199,7 +199,7 @@ Mode=0
 Sound=True
 
 elements_to_disable = [
-    'slider', 'combo_time', 'combo_distance', 'Auto', 'Manual', 'Off', 'B_On', 'B_Off'
+    'slider', 'combo_time', 'combo_distance', 'Off', 'B_On', 'B_Off'
 ]
 #===================================================================================
 
@@ -219,8 +219,12 @@ while True:
 
     #Read values from GUI
     event, values = window.read(timeout=0.01)
-    window['slider'].update(disabled=not (values['Manual']))        
-    
+
+    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
+        break
+
+    window['slider'].update(disabled=not (values['Manual']))     
+        
     #Events
     if event == 'combo_COM':
         COM=values['combo_COM']
@@ -246,6 +250,10 @@ while True:
         elif values['Off']:
             ser.write(b"DEFAULT\n")  # Send "DEFAULT" to Arduino
 
+    #Blocks other mode
+    #window['Auto'].update(disabled=not Connected or values['Manual'])
+    #window['Manual'].update(disabled=not Connected or values['Auto'])
+
     if event in ('B_On', 'B_Off'):
         if values['B_On']:
             ser.write(b"BUZZ_ON\n")  # Turn buzzer ON
@@ -258,13 +266,10 @@ while True:
         angulo=values['slider']
 
     if event == 'combo_distance':
-        distancia=values['combo_distance']
+        max_distance=values['combo_distance']
 
     if event == 'combo_time':
         tempo=values['combo_time']
-
-    if event in (sg.WINDOW_CLOSED, "Ctrl+W"):
-        break
 
     if event == "Reset":
         try:
