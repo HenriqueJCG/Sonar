@@ -390,6 +390,8 @@ while True:
         angulo=90
         tempo=100
         max_distance=50
+        radar_ax.set_ylim(0, max_distance)
+        seismo_ax.set_ylim(0, max_distance)
         angles.clear()
         distances.clear()
         seismo_distances = [0] * max_points 
