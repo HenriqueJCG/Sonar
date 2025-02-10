@@ -11,11 +11,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
 
-#conn = psycopg2.connect("host=localhost dbname=postgres user=postgres password=postgres")
-#cur = conn.cursor()
-#cur.execute("select id_utilizador,pass from utilizadores where email=%s", (email,))#verifica se existe email
-#for linha in cur.fetchall():
-#        ID,Pass,=linha
+#conn = psycopg2.connect("host=localhost dbname=Sonar user=postgres password=postgres")
+    #cur = conn.cursor()
+    #cur.execute("select id_utilizador,pass from utilizadores where email=%s", (email,))#verifica se existe email
+    #for linha in cur.fetchall():
+    #        ID,Pass,=linha
 #cur.close()
 #conn.close()
 
@@ -25,6 +25,8 @@ Connected=False
 max_distance = 50  # Maximum radar range in cm
 max_points = 100  # Number of points to display in seismograph
 Logs_max= 10
+num_detections = 0
+session_start = ""
 angles = []
 distances = []
 Log_angle = []
@@ -91,10 +93,10 @@ line2, = angle_ax.plot([], [], color="blue", linewidth=2)
 #======================================================================
 
 
-#======================================================================
+#=====================================================================================================================================================================
 # Update graphs
 def update(frame):
-    global angles, distances, seismo_distances, seismo_angles
+    global angles, distances, seismo_distances, seismo_angles, num_detections
 
     # Read data from Arduino
     if ser.in_waiting > 0:
@@ -129,6 +131,7 @@ def update(frame):
                 Log_distances.append(distance)
                 Log_angle.append(angle)
                 Log_times.append(current_time)
+                num_detections += 1
 
             if len(Log_angle) > Logs_max:
                 Log_angle.pop(0)
@@ -160,7 +163,7 @@ def update(frame):
 
 #ani = FuncAnimation(fig, update, interval=1, blit=True, cache_frame_data=False)
 
-#================================================================================
+#=====================================================================================================================================================================
 
 #================================================================================
 #PySimpleGUI
@@ -205,7 +208,10 @@ tab_layout1 = [
 ]
 
 layout4 = [
-    [sg.Text("")]
+    [sg.Text("")],
+    [sg.Push(),sg.Text('Session Start Time: '),sg.Text('',key='Session_start'),sg.Push()],
+    [sg.Push(),sg.Text('Number of ocurrences: '),sg.Text(num_detections,key='Num_detections'),sg.Push()],
+    [sg.Push(),sg.Button('Save', key='save'),sg.Push()]
 ]
 
 layout5 = [
@@ -242,7 +248,7 @@ distancia=50
 tempo=100
 
 elements_to_disable = [
-    'slider_angle', 'slider_delay', 'slider_distance', 'Off', 'B_On', 'B_Off'  ,'Auto','Manual'
+    'slider_angle', 'slider_delay', 'slider_distance', 'Off', 'B_On', 'B_Off','save'  ,'Auto','Manual'
 ]
 #===================================================================================
 
@@ -263,6 +269,8 @@ while True:
     #Update Text values and Blocked elements
     color = "green" if Connected else "red"
     window['status'].update(Connected, text_color=color)
+    window["Session_start"].update(session_start)
+    window["Num_detections"].update(num_detections)
 
     for i in range(Logs_max):  
         window[f'Log{i}'].update(" ".join(map(str, Logs[i])))
@@ -343,6 +351,8 @@ while True:
         try:
             ser = serial.Serial(COM, 9600, timeout=0.1)
             Connected = True
+            session_start = datetime.now().timestamp()
+            session_start = date_format = datetime.fromtimestamp(session_start).strftime('%H:%M:%S %d-%m-%Y')
         except:
             Connected = False
             
@@ -375,6 +385,8 @@ while True:
         window["slider_delay"].update(value=100)
         window["slider_distance"].update(value=50)
         #Clear plot and Logs data
+        session_start=''
+        num_detections=0
         angulo=90
         tempo=100
         max_distance=50
