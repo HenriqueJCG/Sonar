@@ -211,11 +211,16 @@ layout4 = [
     [sg.Text("")],
     [sg.Push(),sg.Text('Session Start Time: '),sg.Text('',key='Session_start'),sg.Push()],
     [sg.Push(),sg.Text('Number of ocurrences: '),sg.Text(num_detections,key='Num_detections'),sg.Push()],
+    [sg.Canvas(key="-Preview-", expand_x=True, expand_y=False,pad=(75,50))],
     [sg.Push(),sg.Button('Save', key='save'),sg.Push()]
 ]
 
+options=['1','2','3','4']
+
 layout5 = [
-    [sg.Text("")]
+    [sg.Listbox(values=options, expand_x=True,expand_y=True , key="-LIST-",enable_events=True, select_mode=sg.LISTBOX_SELECT_MODE_SINGLE,pad=(75,50),justification='Center')],
+    [sg.Push(),sg.Button('Open', key='open'),sg.Push()],
+    [sg.Canvas(key="-Plot-", expand_x=True, expand_y=True,pad=(75,75))]
 ]
 
 tab_layout2 = [
@@ -228,10 +233,11 @@ tab_layout2 = [
     ], expand_x=True, expand_y=True)]
 ]
 
-layout = [[sg.TabGroup([[sg.Tab("Control Panel", tab_layout1,font=("Any", 12, "bold")), sg.Tab("Records", tab_layout2,font=("Any", 12, "bold"))]], expand_x=True, expand_y=True)]]
+layout = [#[sg.Menu([['File', ['Exit']], ['Edit', ['Edit Me', ]]],  k='-CUST MENUBAR-',p=0)],
+[sg.TabGroup([[sg.Tab("Control Panel", tab_layout1,font=("Any", 12, "bold")), sg.Tab("Records", tab_layout2,font=("Any", 12, "bold"))]], expand_x=True, expand_y=True, background_color='#063289')]]
 #===================================================================================
 #Window
-window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True,return_keyboard_events=True)
+window = sg.Window("Sonar Control Panel", layout, finalize=True, resizable=True,return_keyboard_events=True, background_color='#063289',margins=(0, 0))
 window.bind("<Control-w>", "Ctrl+W")
 window.maximize()
 
@@ -271,6 +277,7 @@ while True:
     window['status'].update(Connected, text_color=color)
     window["Session_start"].update(session_start)
     window["Num_detections"].update(num_detections)
+    window['-LIST-'].update(options)
 
     for i in range(Logs_max):  
         window[f'Log{i}'].update(" ".join(map(str, Logs[i])))
