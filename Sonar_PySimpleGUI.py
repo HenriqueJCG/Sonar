@@ -4,7 +4,7 @@ import sys
 import serial
 import psycopg2
 import numpy as np
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
